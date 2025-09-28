@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Upload to {{ group }}</title>
+</head>
+<body>
+  <h1>Upload to {{ group }}</h1>
+  <p><em>This page is powered by Jinja template</em></p>
+
+  <form method="POST" enctype="multipart/form-data">
+    <input type="file" name="file">
+    <button type="submit">Upload</button>
+  </form>
+
+  {% if files %}
+    <h2>Files in {{ group }}</h2>
+    <ul>
+      {% for name in files %}
+        <li><a href="/files/{{ group }}/{{ name }}">{{ name }}</a></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p><em>No files found for this group.</em></p>
+  {% endif %}
+</body>
+</html>
