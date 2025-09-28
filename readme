@@ -1,0 +1,21 @@
+# TransferDepot: Milestone Snapshot
+
+## ✅ Features
+
+- Legacy-compatible `/upload-basic` form
+- Group-based file listing
+- File download now restored via `<a href>` links
+- Throttled streaming download via `/throttled/<group>/<filename>`
+- Metadata endpoint at `/throttled/<group>/<filename>/metadata`
+
+## 🔁 Commit Info
+
+- Phase: Pre-"Three Doors" refactor
+- Git commit: `🧱 Pre-refactor: working TransferDepot with download fix and throttled route`
+- Zip archive: `transferdepot-v1.zip`
+
+## 💬 Notes
+
+- No JS. RHEL6/Firefox1.5 still supported.
+- Download routes now REST-capable and clickable.
+- Ready for admin polish or 3-door split next.
