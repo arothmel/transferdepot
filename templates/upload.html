@@ -17,8 +17,8 @@
   {% if files %}
   <ul>
     {% for f in files %}
-      <!-- Link goes to /files/<group>/<filename> -->
-      <li><a href="/files/{{ group }}/{{ f }}">{{ f }}</a></li>
+      <!-- Link goes to API download endpoint so files open inline -->
+      <li><a href="{{ url_for('api_v1.download', group=group, fname=f) }}">{{ f }}</a></li>
     {% endfor %}
   </ul>
   {% else %}

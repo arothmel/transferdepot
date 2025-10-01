@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, current_app
-import os
 from pathlib import Path
-from werkzeug.utils import secure_filename
+from services.files import save_file
 
 ui_bp = Blueprint("ui", __name__)
 
@@ -20,9 +19,7 @@ def upload_page(group):
     if request.method == "POST":
         f = request.files.get("file")
         if f and f.filename:
-            safe = secure_filename(f.filename)
-            dest = folder / safe
-            f.save(dest)
+            save_file(group, f)
             return redirect(url_for("ui.upload_page", group=group))
 
     files = [f.name for f in folder.iterdir() if f.is_file()]

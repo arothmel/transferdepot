@@ -14,8 +14,13 @@ WIP scratchpad — not production ready
 - goal: **don’t freeze the system during uploads**
 - testing with uWSGI → 2 processes, 2 threads
 
+## Camelot (DEV) deployment notes
+- uWSGI runs from this repo using `uwsgi.ini`; socket is `/run/uwsgi/transferdepot.sock` (ensure directory exists and owned by `uwsgi:nginx`).
+- Nginx on Sh1re front-ends Camelot; use `deploy/nginx-transferdepot.conf` as the tuned vhost (update `server_name` and TLS paths per environment).
+- Key upload tunings: request buffering disabled end-to-end, 0 upload size limits, 1h timeouts so unstable clients can resume, and offload threads handle slow disk/network writes.
+- Keep Camelot isolated from Virtca8 (production); these settings are DEV-only until validated with perf tests.
+
 ## Next
 - hook up `/files/<group>/<filename>` serving
 - admin UI for groups (add/rename)
 - more perf tests on upload streaming
-
