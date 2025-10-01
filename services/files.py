@@ -1,11 +1,13 @@
-import os, json, shutil
+import os
+import json
+import shutil
 from pathlib import Path
 from flask import current_app
 from werkzeug.utils import secure_filename
 
 # --- helpers ---
 def _groups_file_path() -> Path:
-    return Path(current_app.config.get("GROUPS_FILE") or os.getenv("TD_GROUPS_FILE", "groups.json"))
+    return Path(current_app.config["GROUPS_FILE"])
 
 def _upload_root() -> Path:
     return Path(current_app.config["UPLOAD_FOLDER"])
@@ -35,20 +37,23 @@ def list_files(group: str):
 def save_file(group, file_storage, chunk_size=None):
     """Stream an uploaded file to UPLOAD_FOLDER/<group>/<filename> and return the path."""
     if chunk_size is None:
-        chunk_size = int(os.getenv("TD_CHUNK_SIZE", 8 * 1024 * 1024))  # default 8 MiB
+        chunk_size = int(current_app.config.get("UPLOAD_CHUNK_SIZE", 8 * 1024 * 1024))
 
     target_dir = _upload_root() / group
     target_dir.mkdir(parents=True, exist_ok=True)
 
     safe = secure_filename(file_storage.filename)
     dest = target_dir / safe
+    temp_dest = dest.with_suffix(dest.suffix + ".part")
 
     # Python 3.6 safe streaming
-    with open(dest, "wb") as out:
+    with open(temp_dest, "wb") as out:
         while True:
             chunk = file_storage.stream.read(chunk_size)
             if not chunk:
                 break
             out.write(chunk)
+
+    os.replace(temp_dest, dest)
 
     return str(dest)
