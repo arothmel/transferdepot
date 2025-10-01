@@ -1,44 +1,54 @@
-import os
-import json
+import os, json, shutil
 from pathlib import Path
+from flask import current_app
 from werkzeug.utils import secure_filename
 
-# If env not set, use groups.json in current dir
-GROUPS_FILE = os.getenv("TD_GROUPS_FILE", "groups.json")
+# --- helpers ---
+def _groups_file_path() -> Path:
+    return Path(current_app.config.get("GROUPS_FILE") or os.getenv("TD_GROUPS_FILE", "groups.json"))
 
-# Root folder where uploaded files are stored
-UPLOAD_ROOT = os.getenv("TD_UPLOAD_FOLDER", "files")
+def _upload_root() -> Path:
+    return Path(current_app.config["UPLOAD_FOLDER"])
 
+# --- groups ---
 def load_groups():
-    """Read groups.json and return a list of groups."""
-    try:
-        return json.loads(Path(GROUPS_FILE).read_text("utf-8"))
-    except Exception:
-        # Fallback if file missing or invalid
-        return ["TTCS", "MDA", "RS2", "ODMP", "PAV"]
+    p = _groups_file_path()
+    if not p.exists():
+        raise FileNotFoundError(f"Groups file not found: {p}")
+    with p.open("r") as f:
+        return json.load(f)
 
 def save_groups(groups):
-    """Write a new list of groups to groups.json."""
-    Path(GROUPS_FILE).write_text(json.dumps(groups, indent=2))
+    p = _groups_file_path()
+    p.write_text(json.dumps(groups, indent=2))
 
 def list_groups():
-    """Return the list of groups (used by API routes)."""
     return load_groups()
 
-def list_files(group):
-    """Return list of files in a given group directory."""
-    group_path = Path(UPLOAD_ROOT) / group
-    if not group_path.exists():
+# --- files ---
+def list_files(group: str):
+    g = _upload_root() / group
+    if not g.exists():
         return []
-    return [f.name for f in group_path.iterdir() if f.is_file()]
+    return [f.name for f in g.iterdir() if f.is_file()]
 
-def save_file(group, file_storage):
-    """Save an uploaded file into UPLOAD_ROOT/<group>/ and return the path."""
-    group_path = Path(UPLOAD_ROOT) / group
-    group_path.mkdir(parents=True, exist_ok=True)
+def save_file(group, file_storage, chunk_size=None):
+    """Stream an uploaded file to UPLOAD_FOLDER/<group>/<filename> and return the path."""
+    if chunk_size is None:
+        chunk_size = int(os.getenv("TD_CHUNK_SIZE", 8 * 1024 * 1024))  # default 8 MiB
+
+    target_dir = _upload_root() / group
+    target_dir.mkdir(parents=True, exist_ok=True)
 
     safe = secure_filename(file_storage.filename)
-    dest = group_path / safe
-    file_storage.save(str(dest))
+    dest = target_dir / safe
+
+    # Python 3.6 safe streaming
+    with open(dest, "wb") as out:
+        while True:
+            chunk = file_storage.stream.read(chunk_size)
+            if not chunk:
+                break
+            out.write(chunk)
 
     return str(dest)

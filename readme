@@ -1,21 +1,21 @@
-# TransferDepot: Milestone Snapshot
+# transferdepot
 
-## ✅ Features
+WIP scratchpad — not production ready
 
-- Legacy-compatible `/upload-basic` form
-- Group-based file listing
-- File download now restored via `<a href>` links
-- Throttled streaming download via `/throttled/<group>/<filename>`
-- Metadata endpoint at `/throttled/<group>/<filename>/metadata`
+## Current layout
+- `app.py` – Flask entrypoint, sets up blueprints and config
+- `services/files.py` – file save/load helpers, groups.json handling
+- `templates/` – index + upload form
+- `uwsgi.ini` – uwsgi config (long uploads + workers)
 
-## 🔁 Commit Info
+## Notes
+- groups.json currently lives outside project (`transferdepot-001/config/groups.json`)
+- env vars: `TD_UPLOAD_FOLDER`, `TD_GROUPS_FILE`, `TD_CHUNK_SIZE`
+- goal: **don’t freeze the system during uploads**
+- testing with uWSGI → 2 processes, 2 threads
 
-- Phase: Pre-"Three Doors" refactor
-- Git commit: `🧱 Pre-refactor: working TransferDepot with download fix and throttled route`
-- Zip archive: `transferdepot-v1.zip`
+## Next
+- hook up `/files/<group>/<filename>` serving
+- admin UI for groups (add/rename)
+- more perf tests on upload streaming
 
-## 💬 Notes
-
-- No JS. RHEL6/Firefox1.5 still supported.
-- Download routes now REST-capable and clickable.
-- Ready for admin polish or 3-door split next.
