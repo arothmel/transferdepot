@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  {% if refresh_seconds %}
+  <meta http-equiv="refresh" content="{{ refresh_seconds }}">
+  {% endif %}
+  <title>Status for {{ group }}</title>
+</head>
+<body>
+  <h1>Upload status for {{ group }}</h1>
+  <p><a href="{{ url_for('ui.upload_page', group=group) }}">Back to upload page</a></p>
+
+  <form method="post" action="{{ url_for('ui.clear_status', group=group) }}">
+    <button type="submit">Clear completed entries</button>
+  </form>
+
+  {% if cleared %}
+  <p>{{ cleared }} entries cleared.</p>
+  {% endif %}
+
+  {% if statuses %}
+  <ul>
+    {% for status in statuses %}
+      <li>
+        <strong>{{ status.file }}</strong>
+        {% if status.status == 'in_progress' %}
+          – In progress {{ status.bytes_display }}{% if status.total_display %} of {{ status.total_display }}{% endif %}{% if status.percent is not none %} ({{ status.percent }}%){% endif %}; updated {{ status.age_display }} ago
+        {% elif status.status == 'completed' %}
+          – Completed at {{ status.completed_iso or status.updated_iso }}{% if status.duration_display %} (duration {{ status.duration_display }}){% endif %}; size {{ status.bytes_display }}
+        {% elif status.status == 'failed' %}
+          – Failed {{ status.error or 'unknown error' }}; updated {{ status.age_display }} ago
+        {% else %}
+          – {{ status.status|capitalize }}; updated {{ status.age_display }} ago
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>No active uploads right now.</p>
+  {% endif %}
+</body>
+</html>

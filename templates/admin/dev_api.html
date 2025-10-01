@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Dev API</title>
+</head>
+<body>
+  <div class="topbar">
+    <a class="btn" href="/">Home</a>
+    <a class="btn" href="/admin/health">Admin Health</a>
+    <a class="btn" href="/admin/dev-api">Dev API</a>
+  </div>
+
+  <h1>Developer API Door</h1>
+  <p>The public REST interface is still live for automation-loving friends. A few quick reminders:</p>
+
+  <h2>Health check</h2>
+  <pre>curl {{ base_url }}/api/v1/admin/healthz</pre>
+
+  <h2>Upload</h2>
+  <pre>curl -F "file=@large.bin" {{ base_url }}/api/v1/upload/{{ example_group }}</pre>
+
+  <h2>List files</h2>
+  <pre>curl {{ base_url }}/api/v1/files/{{ example_group }}</pre>
+
+  <h2>Download</h2>
+  <pre>curl -OJ {{ base_url }}/api/v1/files/{{ example_group }}/{{ example_filename }}</pre>
+
+  <p>Need raw status data? Poll the heartbeat JSON written to <code>{{ base_url }}/{{ example_group }}/status</code> or call the admin telemetry endpoint once bwatch is available.</p>
+</body>
+</html>

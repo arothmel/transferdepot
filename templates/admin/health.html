@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Admin Health</title>
+</head>
+<body>
+  <div class="topbar">
+    <a class="btn" href="/">Home</a>
+    <a class="btn" href="/admin/health">Admin Health</a>
+    <a class="btn" href="/admin/dev-api">Dev API</a>
+  </div>
+
+  <h1>TransferDepot Health</h1>
+  <section>
+    <h2>Service Snapshot</h2>
+    <ul>
+      <li>Upload folder: <code>{{ upload_root }}</code></li>
+      <li>Status folder: <code>{{ status_root }}</code></li>
+      <li>Heartbeat interval: {{ heartbeat_interval }} seconds</li>
+      <li>Default retention: {{ retention_default }} days</li>
+      <li>Retention overrides: {% if retention_overrides %}{{ retention_overrides }}{% else %}none{% endif %}</li>
+      <li>API health endpoint: <a href="{{ api_health_url }}">{{ api_health_url }}</a></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Groups</h2>
+    {% if summaries %}
+    <table border="1" cellpadding="4" cellspacing="0">
+      <tr>
+        <th>Group</th>
+        <th>Files</th>
+        <th>Most recent file</th>
+        <th>Last updated</th>
+      </tr>
+      {% for s in summaries %}
+      <tr>
+        <td>{{ s.group }}</td>
+        <td>{{ s.file_count }}</td>
+        <td>{{ s.latest_file or '-' }}</td>
+        <td>{{ s.last_updated }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <p>No groups detected in the upload folder.</p>
+    {% endif %}
+  </section>
+
+  <section>
+    <h2>Active uploads</h2>
+    {% if active_uploads %}
+    <ul>
+      {% for item in active_uploads %}
+      <li>
+        <strong>{{ item.group }} / {{ item.file }}</strong>
+        – {{ item.status|replace('_', ' ') }}; {{ item.bytes_display }}
+        {% if item.total_display %} of {{ item.total_display }}{% endif %}
+        {% if item.duration_display %} (duration {{ item.duration_display }}){% endif %}
+        – updated {{ item.age_display }} ago
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>No active uploads right now.</p>
+    {% endif %}
+  </section>
+</body>
+</html>
