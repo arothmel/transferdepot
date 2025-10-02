@@ -1,7 +1,7 @@
 # transferdepot
 a file transfer service. We split it into three doors — a UI for people, an API for automation, and an Admin panel for health checks — and then moved file downloads out of the app entirely so they’re served directly by Nginx. That way, the app only does logic, and the web server does the heavy lifting for big transfers. 
 
-## Todays Wins
+## Completed
 
   - Tuned Chunked Streaming: Dropped TD_CHUNK_SIZE to 1 MB and confirmed uWSGI reads nonstop without timing
   out; the 350 MB upload finally completed while the UI stayed responsive.
@@ -15,6 +15,8 @@ a file transfer service. We split it into three doors — a UI for people, an AP
   - Proxy Resilience: Expanded Sh1re nginx timeouts and confirmed uWSGI socket/timeouts are aligned so
   stalled uploads don’t crash the box.
 
-###  Next Tests
+###  Tested
+
+Results can be viewed under the Upload Status
 
 
