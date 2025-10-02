@@ -17,10 +17,4 @@ a file transfer service. We split it into three doors — a UI for people, an AP
 
 ###  Next Tests
 
-  1. Run the new 350 MB text upload (medium-big.txt) while tailing Sh1re/Virtca8 logs to verify no timeouts
-  hit (collect timestamps for the network ticket).
-  2. Try a smaller but choppy upload (intentionally pause the client mid-transfer) to confirm the heartbeat
-  shovels updates and the connection survives.
-  3. Exercise the “Clear completed entries” button on /group/status and ensure the admin health page reflects
-  the cleanup.
 
