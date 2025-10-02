@@ -3,28 +3,37 @@
 <head>
   <meta charset="utf-8">
   <title>Group {{ group }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 </head>
 <body>
-  <h1>Group: {{ group }}</h1>
+  <div class="topbar">
+    <a class="btn" href="/">Home</a>
+    <a class="btn" href="/admin/health">Admin Health</a>
+    <a class="btn" href="/admin/dev-api">Dev API</a>
+  </div>
 
-  <!-- Upload form -->
-  <form method="post" enctype="multipart/form-data">
-    <input type="file" name="file">
-    <input type="submit" value="Upload">
-  </form>
+  <main>
+    <h1>Group: {{ group }}</h1>
 
-  <p><a href="{{ url_for('ui.group_status', group=group) }}">Check upload progress</a></p>
+    <!-- Upload form -->
+    <form method="post" enctype="multipart/form-data">
+      <input type="file" name="file">
+      <input type="submit" value="Upload">
+    </form>
 
-  <h2>Files</h2>
-  {% if files %}
-  <ul>
-    {% for f in files %}
-      <!-- Link goes to API download endpoint so files open inline -->
-      <li><a href="{{ url_for('api_v1.download', group=group, fname=f) }}">{{ f }}</a></li>
-    {% endfor %}
-  </ul>
-  {% else %}
-  <p>No files uploaded yet.</p>
-  {% endif %}
+    <p><a href="{{ url_for('ui.group_status', group=group) }}">Check upload progress</a></p>
+
+    <h2>Files</h2>
+    {% if files %}
+    <ul>
+      {% for f in files %}
+        <!-- Link goes to API download endpoint so files open inline -->
+        <li><a href="{{ url_for('api_v1.download', group=group, fname=f) }}">{{ f }}</a></li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>No files uploaded yet.</p>
+    {% endif %}
+  </main>
 </body>
 </html>

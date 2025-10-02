@@ -1,0 +1,102 @@
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f7f7f9;
+  color: #222;
+  margin: 0;
+  padding: 0;
+}
+
+main {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1.5rem 3rem;
+}
+
+.topbar {
+  background: #1f2933;
+  padding: 1rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.topbar .btn {
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.topbar .btn:hover,
+.topbar .btn:focus {
+  text-decoration: underline;
+}
+
+h1, h2, h3 {
+  color: #111827;
+  margin-top: 1.5rem;
+}
+
+a {
+  color: #1d4ed8;
+}
+
+a:hover,
+a:focus {
+  text-decoration: underline;
+}
+
+ul {
+  list-style: disc inside;
+  padding-left: 0;
+}
+
+li + li {
+  margin-top: 0.5rem;
+}
+
+button,
+input[type="submit"],
+input[type="file"] {
+  font: inherit;
+}
+
+button,
+input[type="submit"] {
+  background: #2563eb;
+  border: none;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover,
+button:focus,
+input[type="submit"]:hover,
+input[type="submit"]:focus {
+  background: #1e40af;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+th, td {
+  border: 1px solid #d1d5db;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+code, pre {
+  font-family: "Fira Code", "Courier New", monospace;
+  background: #eef2ff;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+}
+
+pre {
+  display: inline-block;
+  margin: 0.25rem 0 1rem;
+}
