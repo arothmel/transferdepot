@@ -304,6 +304,68 @@ def list_active_uploads(group: str):
     return statuses
 
 
+def list_recent_transfers(hours: float = 24.0):
+    """Collect transfer records from heartbeat files across all groups."""
+    status_root = _status_root()
+    if not status_root.exists():
+        return []
+
+    cutoff = _now_ts() - max(hours, 0) * 3600
+    transfers = []
+
+    for group_dir in sorted(status_root.iterdir()):
+        if not group_dir.is_dir():
+            continue
+        group_name = group_dir.name
+        for path in group_dir.glob("*.json"):
+            try:
+                data = json.loads(path.read_text())
+            except (json.JSONDecodeError, OSError):
+                continue
+
+            status = data.get("status") or "unknown"
+            file_name = data.get("file") or path.stem
+            completed_ts = data.get("completed_ts")
+            updated_ts = data.get("updated_ts") or completed_ts or 0
+            started_ts = data.get("started_ts")
+
+            if updated_ts and updated_ts < cutoff:
+                continue
+
+            record = {
+                "group": group_name,
+                "file": file_name,
+                "status": status,
+                "bytes": data.get("bytes_written") or 0,
+                "total_bytes": data.get("total_bytes"),
+                "started_ts": started_ts,
+                "started_iso": _iso_utc(started_ts) if started_ts else None,
+                "updated_ts": updated_ts,
+                "updated_iso": _iso_utc(updated_ts) if updated_ts else None,
+                "completed_ts": completed_ts,
+                "completed_iso": _iso_utc(completed_ts) if completed_ts else None,
+                "error": data.get("error"),
+                "is_gateway": group_name.upper() == "SHIRE_GATEWAY",
+            }
+
+            record["bytes_display"] = _format_bytes(record["bytes"])
+            total_bytes = record.get("total_bytes")
+            record["total_display"] = _format_bytes(total_bytes) if total_bytes else None
+
+            if status == "in_progress":
+                heartbeat_interval = int(current_app.config.get("HEARTBEAT_INTERVAL", 30)) or 30
+                stale_cutoff = updated_ts + heartbeat_interval * 4
+                if stale_cutoff < _now_ts():
+                    record["status"] = "stalled"
+            elif status not in {"completed", "failed"} and completed_ts:
+                record["status"] = "completed"
+
+            transfers.append(record)
+
+    transfers.sort(key=lambda entry: entry.get("updated_ts") or 0, reverse=True)
+    return transfers
+
+
 def clear_completed_statuses(group: str) -> int:
     root = _status_root() / group
     if not root.exists():

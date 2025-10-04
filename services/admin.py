@@ -5,7 +5,7 @@ from pathlib import Path
 
 from flask import Blueprint, jsonify, request, render_template, current_app
 
-from .files import list_active_uploads, list_files, list_groups
+from .files import list_active_uploads, list_files, list_groups, list_recent_transfers
 
 admin_api_bp = Blueprint("admin_api", __name__, url_prefix="/api/v1/admin")
 admin_ui_bp = Blueprint("admin_ui", __name__, url_prefix="/admin")
@@ -97,6 +97,8 @@ def admin_health_page():
 
     active_uploads.sort(key=lambda s: s.get("updated_ts") or 0, reverse=True)
 
+    transfers = list_recent_transfers(hours=24)
+
     return render_template(
         "admin/health.html",
         upload_root=str(upload_root),
@@ -106,6 +108,7 @@ def admin_health_page():
         retention_overrides=cfg.get("RETENTION_OVERRIDES", {}),
         summaries=summaries,
         active_uploads=active_uploads,
+        transfers=transfers,
         api_health_url="/api/v1/admin/healthz",
     )
 
