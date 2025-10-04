@@ -3,6 +3,35 @@ import os
 import datetime
 from services.files import save_file
 
+
+def _parse_time_arg(value):
+    """Return a UNIX timestamp for the provided query arg or None if invalid."""
+    if not value:
+        return None
+
+    value = value.strip()
+    if not value:
+        return None
+
+    try:
+        return float(value)
+    except ValueError:
+        pass
+
+    cleaned = value
+    if cleaned.endswith("Z"):
+        cleaned = cleaned[:-1] + "+00:00"
+
+    try:
+        dt = datetime.datetime.fromisoformat(cleaned)
+    except ValueError:
+        return None
+
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=datetime.timezone.utc)
+
+    return dt.timestamp()
+
 api_bp = Blueprint("api_v1", __name__, url_prefix="/api/v1")
 
 # Health check
@@ -32,18 +61,58 @@ def list_files(group):
     if not os.path.isdir(folder):
         return jsonify(error=f"invalid group '{group}'"), 400
 
+    since_raw = request.args.get("since")
+    until_raw = request.args.get("until")
+    limit = request.args.get("limit", type=int)
+
+    since_ts = _parse_time_arg(since_raw)
+    until_ts = _parse_time_arg(until_raw)
+
     files = []
-    for name in sorted(os.listdir(folder)):
+    for name in os.listdir(folder):
         full = os.path.join(folder, name)
         if os.path.isfile(full):
             st = os.stat(full)
+            mtime = st.st_mtime
+
+            if since_ts is not None and mtime < since_ts:
+                continue
+            if until_ts is not None and mtime > until_ts:
+                continue
+
             files.append({
                 "name": name,
                 "size": st.st_size,
-                "mtime": datetime.datetime.fromtimestamp(st.st_mtime).isoformat(),
-                "url": f"/api/v1/files/{group}/{name}"
+                "mtime": datetime.datetime.fromtimestamp(mtime, datetime.timezone.utc).isoformat(),
+                "url": f"/api/v1/files/{group}/{name}",
+                "_mtime": mtime,
             })
-    return jsonify(group=group, files=files)
+
+    files.sort(key=lambda entry: entry.get("_mtime", 0), reverse=True)
+
+    if limit is not None and limit >= 0:
+        files = files[:limit]
+
+    for entry in files:
+        entry.pop("_mtime", None)
+
+    response = {
+        "group": group,
+        "files": files,
+        "count": len(files),
+    }
+
+    applied_filters = {}
+    if since_raw:
+        applied_filters["since"] = since_raw
+    if until_raw:
+        applied_filters["until"] = until_raw
+    if limit is not None:
+        applied_filters["limit"] = limit
+    if applied_filters:
+        response["filters"] = applied_filters
+
+    return jsonify(response)
 
 # Download a file
 @api_bp.route("/files/<group>/<path:fname>", methods=["GET"])

@@ -59,7 +59,6 @@
           <strong>{{ item.group }} / {{ item.file }}</strong>
           – {{ item.status|replace('_', ' ') }}; {{ item.bytes_display }}
           {% if item.total_display %} of {{ item.total_display }}{% endif %}
-          {% if item.duration_display %} (duration {{ item.duration_display }}){% endif %}
           – updated {{ item.age_display }} ago
         </li>
         {% endfor %}
