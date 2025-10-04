@@ -51,7 +51,7 @@
     </section>
 
     <section>
-      <h2>Active uploads</h2>
+      <h2>Recent uploads (last 24 hours)</h2>
       {% if active_uploads %}
       <ul>
         {% for item in active_uploads %}
@@ -65,7 +65,7 @@
         {% endfor %}
       </ul>
       {% else %}
-      <p>No active uploads right now.</p>
+      <p>No uploads in the last 24 hours.</p>
       {% endif %}
     </section>
   </main>
