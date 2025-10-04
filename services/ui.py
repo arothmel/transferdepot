@@ -2,6 +2,9 @@ from flask import Blueprint, render_template, request, redirect, url_for, curren
 from pathlib import Path
 from services.files import save_file, list_active_uploads, clear_completed_statuses
 
+
+GATEWAY_GROUP_NAME = "SHIRE_GATEWAY"
+
 ui_bp = Blueprint("ui", __name__)
 
 
@@ -23,17 +26,22 @@ def upload_page(group):
     folder = Path(current_app.config["UPLOAD_FOLDER"]) / group
     folder.mkdir(parents=True, exist_ok=True)
 
+    is_gateway = group.upper() == GATEWAY_GROUP_NAME
+    upload_hint = None
+
     if request.method == "POST":
         f = request.files.get("file")
         if f and f.filename:
             save_file(group, f)
             return redirect(url_for("ui.upload_page", group=group))
-
+        
     files = [f.name for f in folder.iterdir() if f.is_file()]
     return render_template(
         "upload.html",
         group=group,
         files=files,
+        is_gateway=is_gateway,
+        upload_hint=upload_hint,
     )
 
 

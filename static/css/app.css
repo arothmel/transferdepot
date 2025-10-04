@@ -77,6 +77,41 @@ input[type="submit"]:focus {
   background: #1e40af;
 }
 
+.gateway-callout {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  border-left: 4px solid #2563eb;
+  border-radius: 4px;
+  background: #e0ecff;
+  color: #1f2933;
+}
+
+.gateway-callout h2 {
+  margin-top: 0;
+}
+
+.gateway-note {
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+
+.gateway-instructions {
+  margin: 0.75rem 0 1rem;
+  padding-left: 1.25rem;
+}
+
+.btn-secondary {
+  background: #e5e7eb;
+  color: #1f2933;
+  border: 1px solid #cbd5f5;
+  margin-bottom: 0.75rem;
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus {
+  background: #d1d5db;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;

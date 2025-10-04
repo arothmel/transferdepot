@@ -6,6 +6,7 @@ from pathlib import Path
 from flask import current_app
 from werkzeug.utils import secure_filename
 
+
 # --- helpers ---
 def _groups_file_path() -> Path:
     return Path(current_app.config["GROUPS_FILE"])
@@ -176,7 +177,7 @@ def list_files(group: str):
         return []
     return [f.name for f in g.iterdir() if f.is_file()]
 
-def save_file(group, file_storage, chunk_size=None):
+def save_file(group, file_storage, chunk_size=None, max_bytes=None):
     """Stream an uploaded file to UPLOAD_FOLDER/<group>/<filename> and return the path."""
     if chunk_size is None:
         chunk_size = int(current_app.config.get("UPLOAD_CHUNK_SIZE", 8 * 1024 * 1024))
@@ -200,8 +201,8 @@ def save_file(group, file_storage, chunk_size=None):
                 chunk = file_storage.stream.read(chunk_size)
                 if not chunk:
                     break
-                out.write(chunk)
                 bytes_written += len(chunk)
+                out.write(chunk)
                 heartbeat.pulse(len(chunk))
 
         os.replace(temp_dest, dest)
