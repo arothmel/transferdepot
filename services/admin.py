@@ -5,7 +5,7 @@ from pathlib import Path
 
 from flask import Blueprint, jsonify, request, render_template, current_app
 
-from .files import list_active_uploads, list_files
+from .files import list_active_uploads, list_files, list_groups
 
 admin_api_bp = Blueprint("admin_api", __name__, url_prefix="/api/v1/admin")
 admin_ui_bp = Blueprint("admin_ui", __name__, url_prefix="/admin")
@@ -113,12 +113,32 @@ def admin_health_page():
 @admin_ui_bp.route("/dev-api")
 def admin_dev_api_page():
     base_url = request.host_url.rstrip("/")
-    example_group = "TTCS"
+    groups = []
+    groups_error = None
+    try:
+        raw_groups = list_groups()
+        if isinstance(raw_groups, dict):
+            groups = sorted(raw_groups.keys())
+        else:
+            for entry in raw_groups or []:
+                if isinstance(entry, str):
+                    groups.append(entry)
+                elif isinstance(entry, dict):
+                    name = entry.get("name") or entry.get("group")
+                    if name:
+                        groups.append(name)
+        groups = sorted(set(groups))
+    except Exception as exc:
+        groups_error = str(exc)
+
+    example_group = groups[0] if groups else "TTCS"
     example_filename = "sample.bin"
     return render_template(
         "admin/dev_api.html",
         base_url=base_url,
         example_group=example_group,
+        groups=groups,
+        groups_error=groups_error,
         example_filename=example_filename,
     )
 

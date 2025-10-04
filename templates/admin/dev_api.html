@@ -14,7 +14,20 @@
 
   <main>
     <h1>Developer API Door</h1>
-    <p>The public REST interface is still live for automation-loving friends. A few quick reminders:</p>
+    <p>The public REST interface is live for automation-heavy workflows. A few quick reminders (and fresh tricks) below.</p>
+
+    <h2>Available groups</h2>
+    {% if groups %}
+    <ul>
+      {% for group in groups %}
+      <li><code>{{ group }}</code></li>
+      {% endfor %}
+    </ul>
+    {% elif groups_error %}
+    <p><strong>Could not read groups.json:</strong> {{ groups_error }}</p>
+    {% else %}
+    <p>No groups loaded from groups.json yet.</p>
+    {% endif %}
 
     <h2>Health check</h2>
     <pre>curl {{ base_url }}/api/v1/admin/healthz</pre>
@@ -23,12 +36,25 @@
     <pre>curl -F "file=@large.bin" {{ base_url }}/api/v1/upload/{{ example_group }}</pre>
 
     <h2>List files</h2>
+    <p>List everything for a group:</p>
     <pre>curl {{ base_url }}/api/v1/files/{{ example_group }}</pre>
+
+    <p>Filter by modified date/time (use ISO8601 or epoch seconds) and cap the size of the response:</p>
+    <pre>curl "{{ base_url }}/api/v1/files/{{ example_group }}?since=2024-05-01&amp;until=2024-05-31T23:59:59Z&amp;limit=100"</pre>
+
+    <p>The response now returns <code>count</code> and echoes any filters so scripts can confirm what ran.</p>
 
     <h2>Download</h2>
     <pre>curl -OJ {{ base_url }}/api/v1/files/{{ example_group }}/{{ example_filename }}</pre>
 
-    <p>Need raw status data? Poll the heartbeat JSON written to <code>{{ base_url }}/{{ example_group }}/status</code> or call the admin telemetry endpoint once bwatch is available.</p>
+    <h2>Batch download loop</h2>
+    <pre>curl -s "{{ base_url }}/api/v1/files/{{ example_group }}?since=$(date -d 'yesterday' +%s)" \
+  | jq -r '.files[].name' \
+  | while read file; do
+      curl -OJ "{{ base_url }}/api/v1/files/{{ example_group }}/$file"
+    done</pre>
+
+    <p>Need raw status data? Poll the heartbeat JSON at <code>{{ base_url }}/{{ example_group }}/status</code> or call the admin telemetry endpoint when bwatch is available.</p>
   </main>
 </body>
 </html>
