@@ -27,7 +27,6 @@ def upload_page(group):
     folder.mkdir(parents=True, exist_ok=True)
 
     is_gateway = group.upper() == GATEWAY_GROUP_NAME
-    upload_hint = None
 
     if request.method == "POST":
         f = request.files.get("file")
@@ -41,7 +40,6 @@ def upload_page(group):
         group=group,
         files=files,
         is_gateway=is_gateway,
-        upload_hint=upload_hint,
     )
 
 

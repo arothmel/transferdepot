@@ -68,8 +68,13 @@ def _group_summaries(upload_root: Path):
                 )
                 if latest_ts
                 else "-",
+                "last_updated_ts": latest_ts,
             }
         )
+
+    summaries.sort(key=lambda entry: entry.get("last_updated_ts") or 0, reverse=True)
+    for summary in summaries:
+        summary.pop("last_updated_ts", None)
 
     return summaries
 
@@ -82,12 +87,15 @@ def admin_health_page():
     summaries = _group_summaries(upload_root)
 
     active_uploads = []
+    cutoff = time.time() - (24 * 60 * 60)
     for summary in summaries:
         statuses = list_active_uploads(summary["group"])
         for status in statuses:
-            active_uploads.append({"group": summary["group"], **status})
+            updated_ts = status.get("updated_ts") or 0
+            if updated_ts >= cutoff:
+                active_uploads.append({"group": summary["group"], **status})
 
-    active_uploads.sort(key=lambda s: (s.get("status") != "in_progress", s.get("file")))
+    active_uploads.sort(key=lambda s: s.get("updated_ts") or 0, reverse=True)
 
     return render_template(
         "admin/health.html",
