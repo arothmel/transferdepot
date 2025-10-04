@@ -51,20 +51,22 @@
     </section>
 
     <section>
-      <h2>Recent uploads (last 24 hours)</h2>
-      {% if active_uploads %}
+      <h2>Recent transfers (last 24 hours)</h2>
+      {% if transfers %}
       <ul>
-        {% for item in active_uploads %}
+        {% for item in transfers %}
         <li>
           <strong>{{ item.group }} / {{ item.file }}</strong>
+          {% if item.is_gateway %}<span class="tag">gateway</span>{% endif %}
           – {{ item.status|replace('_', ' ') }}; {{ item.bytes_display }}
           {% if item.total_display %} of {{ item.total_display }}{% endif %}
-          – updated {{ item.age_display }} ago
+          {% if item.completed_iso %}– finished {{ item.completed_iso }}{% else %}– updated {{ item.updated_iso }}{% endif %}
+          {% if item.error %}– error: {{ item.error }}{% endif %}
         </li>
         {% endfor %}
       </ul>
       {% else %}
-      <p>No uploads in the last 24 hours.</p>
+      <p>No transfers in the last 24 hours.</p>
       {% endif %}
     </section>
   </main>

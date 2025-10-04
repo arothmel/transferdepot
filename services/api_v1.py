@@ -1,7 +1,7 @@
 from flask import Blueprint, request, current_app, jsonify, send_from_directory
 import os
 import datetime
-from services.files import save_file
+from services.files import save_file, list_recent_transfers
 
 
 def _parse_time_arg(value):
@@ -126,3 +126,9 @@ def download(group, fname):
 
     # Serve inline so text files open in-browser; clients can force download via browser controls
     return send_from_directory(folder, safe, as_attachment=False)
+@api_bp.route("/admin/transfers", methods=["GET"])
+def admin_transfers():
+    hours = request.args.get("hours", default=24, type=float)
+    hours = max(hours, 0) if hours is not None else 24
+    transfers = list_recent_transfers(hours=hours)
+    return jsonify(count=len(transfers), hours=hours, transfers=transfers)

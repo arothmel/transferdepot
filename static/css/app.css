@@ -112,6 +112,18 @@ input[type="submit"]:focus {
   background: #d1d5db;
 }
 
+.tag {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
