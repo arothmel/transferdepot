@@ -189,7 +189,7 @@ def admin_oncall_document(filename):
         abort(404)
 
     response = make_response(
-        send_file(target, mimetype="application/pdf", as_attachment=False)
+        send_file(str(target), mimetype="application/pdf", as_attachment=False)
     )
     response.headers["Content-Disposition"] = f'inline; filename="{oncall_file}"'
     response.headers["Cache-Control"] = "no-store, must-revalidate"
@@ -202,6 +202,8 @@ def admin_oncall_document(filename):
 # Public helper retained for other modules/tests
 def get_group_summaries(upload_path):
     return _group_summaries(Path(upload_path))
+
+
 def _resolve_oncall_path(oncall_dir: Optional[str], oncall_file: str) -> Optional[Path]:
     """Return the first existing on-call PDF path, considering fallbacks."""
 
