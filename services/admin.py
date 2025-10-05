@@ -19,7 +19,7 @@ from flask import (
 from .files import list_active_uploads, list_files, list_groups, list_recent_transfers
 
 
-DEFAULT_ONCALL_DIR = "/home/tux/transferdepot/files/ONCALL"
+DEFAULT_ONCALL_DIR = "/home/tux/transferdepot-001/artifacts/ONCALL"
 DEFAULT_ONCALL_FILE = "oncall_board.pdf"
 
 admin_api_bp = Blueprint("admin_api", __name__, url_prefix="/api/v1/admin")

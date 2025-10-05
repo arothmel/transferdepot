@@ -11,9 +11,7 @@ DEFAULT_STATUS_FOLDER = os.path.join(os.path.dirname(__file__), "run", "status")
 DEFAULT_HEARTBEAT_INTERVAL = 30  # seconds
 DEFAULT_HEARTBEAT_RETENTION = 180  # seconds
 DEFAULT_RETENTION_DEFAULT_DAYS = 28
-DEFAULT_ONCALL_DIR = os.path.join(
-    os.path.dirname(DEFAULT_UPLOAD_FOLDER), "artifacts", "ONCALL"
-)
+DEFAULT_ONCALL_DIR = "/home/tux/transferdepot-001/artifacts/ONCALL"
 DEFAULT_ONCALL_FILE = "oncall_board.pdf"
 
 
