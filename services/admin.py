@@ -1,11 +1,26 @@
 import json
+import os
 import time
 from datetime import datetime
 from pathlib import Path
 
-from flask import Blueprint, jsonify, request, render_template, current_app
+from flask import (
+    Blueprint,
+    jsonify,
+    request,
+    render_template,
+    current_app,
+    send_file,
+    abort,
+    make_response,
+    url_for,
+)
 
 from .files import list_active_uploads, list_files, list_groups, list_recent_transfers
+
+
+DEFAULT_ONCALL_DIR = "/home/tux/transferdepot/files/ONCALL"
+DEFAULT_ONCALL_FILE = "oncall_board.pdf"
 
 admin_api_bp = Blueprint("admin_api", __name__, url_prefix="/api/v1/admin")
 admin_ui_bp = Blueprint("admin_ui", __name__, url_prefix="/admin")
@@ -99,6 +114,13 @@ def admin_health_page():
 
     transfers = list_recent_transfers(hours=24)
 
+    oncall_dir = cfg.get("ONCALL_DIR") or os.getenv("TD_ONCALL_DIR") or DEFAULT_ONCALL_DIR
+    oncall_file = cfg.get("ONCALL_FILE") or os.getenv("TD_ONCALL_FILE") or DEFAULT_ONCALL_FILE
+    oncall_path = Path(oncall_dir) / oncall_file
+    oncall_url = None
+    if oncall_path.is_file():
+        oncall_url = url_for("admin_ui.admin_oncall_document", filename=oncall_file)
+
     return render_template(
         "admin/health.html",
         upload_root=str(upload_root),
@@ -109,6 +131,7 @@ def admin_health_page():
         summaries=summaries,
         active_uploads=active_uploads,
         transfers=transfers,
+        oncall_url=oncall_url,
         api_health_url="/api/v1/admin/healthz",
     )
 
@@ -144,6 +167,30 @@ def admin_dev_api_page():
         groups_error=groups_error,
         example_filename=example_filename,
     )
+
+
+@admin_ui_bp.route("/oncall/<path:filename>")
+def admin_oncall_document(filename):
+    cfg = current_app.config
+    oncall_dir = cfg.get("ONCALL_DIR") or os.getenv("TD_ONCALL_DIR") or DEFAULT_ONCALL_DIR
+    oncall_file = cfg.get("ONCALL_FILE") or os.getenv("TD_ONCALL_FILE") or DEFAULT_ONCALL_FILE
+
+    if filename != oncall_file:
+        abort(404)
+
+    target = Path(oncall_dir) / oncall_file
+    if not target.is_file():
+        abort(404)
+
+    response = make_response(
+        send_file(target, mimetype="application/pdf", as_attachment=False)
+    )
+    response.headers["Content-Disposition"] = f'inline; filename="{oncall_file}"'
+    response.headers["Cache-Control"] = "no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
 # Public helper retained for other modules/tests

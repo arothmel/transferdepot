@@ -23,10 +23,13 @@ def index():
 
 @ui_bp.route("/<group>/", methods=["GET", "POST"])
 def upload_page(group):
-    folder = Path(current_app.config["UPLOAD_FOLDER"]) / group
+    upload_root = Path(current_app.config["UPLOAD_FOLDER"])
+    folder = upload_root / group
     folder.mkdir(parents=True, exist_ok=True)
 
     is_gateway = group.upper() == GATEWAY_GROUP_NAME
+
+    groups = [d.name for d in upload_root.iterdir() if d.is_dir()]
 
     if request.method == "POST":
         f = request.files.get("file")
@@ -40,6 +43,7 @@ def upload_page(group):
         group=group,
         files=files,
         is_gateway=is_gateway,
+        groups=groups,
     )
 
 

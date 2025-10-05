@@ -11,6 +11,10 @@ DEFAULT_STATUS_FOLDER = os.path.join(os.path.dirname(__file__), "run", "status")
 DEFAULT_HEARTBEAT_INTERVAL = 30  # seconds
 DEFAULT_HEARTBEAT_RETENTION = 180  # seconds
 DEFAULT_RETENTION_DEFAULT_DAYS = 28
+DEFAULT_ONCALL_DIR = os.path.join(
+    os.path.dirname(DEFAULT_UPLOAD_FOLDER), "artifacts", "ONCALL"
+)
+DEFAULT_ONCALL_FILE = "oncall_board.pdf"
 
 
 def _parse_retention_overrides(raw: str):
@@ -41,6 +45,8 @@ app.config.from_mapping(
     HEARTBEAT_INTERVAL=int(os.getenv("TD_HEARTBEAT_INTERVAL", DEFAULT_HEARTBEAT_INTERVAL)),
     HEARTBEAT_RETENTION=int(os.getenv("TD_HEARTBEAT_RETENTION", DEFAULT_HEARTBEAT_RETENTION)),
     RETENTION_DEFAULT_DAYS=int(os.getenv("TD_RETENTION_DEFAULT_DAYS", DEFAULT_RETENTION_DEFAULT_DAYS)),
+    ONCALL_DIR=os.getenv("TD_ONCALL_DIR", DEFAULT_ONCALL_DIR),
+    ONCALL_FILE=os.getenv("TD_ONCALL_FILE", DEFAULT_ONCALL_FILE),
 )
 
 app.config["RETENTION_OVERRIDES"] = _parse_retention_overrides(
@@ -60,6 +66,8 @@ app.logger.debug(
         "heartbeat_interval": app.config["HEARTBEAT_INTERVAL"],
         "retention_default_days": app.config["RETENTION_DEFAULT_DAYS"],
         "retention_overrides": app.config["RETENTION_OVERRIDES"],
+        "oncall_dir": app.config["ONCALL_DIR"],
+        "oncall_file": app.config["ONCALL_FILE"],
     }
 )
 

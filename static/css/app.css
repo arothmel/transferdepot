@@ -12,6 +12,45 @@ main {
   padding: 0 1.5rem 3rem;
 }
 
+.group-block {
+  margin-bottom: 2.5rem;
+}
+
+.group-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.group-button {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  background: #f3f4f6;
+  color: #111827;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.group-button:hover,
+.group-button:focus {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.group-button--active {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #1d4ed8;
+}
+
+.group-button--active:hover,
+.group-button--active:focus {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
 .topbar {
   background: #1f2933;
   padding: 1rem;
@@ -146,4 +185,22 @@ code, pre {
 pre {
   display: inline-block;
   margin: 0.25rem 0 1rem;
+}
+.group-block--desk h2 {
+  font-size: 1.1rem;
+  color: #6b7280;
+}
+
+.desk-note {
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+
+.desk-note a {
+  color: #4b5563;
+  text-decoration: underline;
+}
+
+.upload-block .upload-form {
+  margin-bottom: 1.5rem;
 }

@@ -13,17 +13,34 @@
 </div>
 
 <main>
-  <h1>TransferDepot</h1>
-  <h2>Pick your group / zone:</h2>
+  {% set control_groups = groups | reject('equalto', 'SHIRE_GATEWAY') | list %}
 
-  <ul>
-  {% for g in groups %}
-    <li><a href="/{{ g }}">{{ g }}</a></li>
-  {% endfor %}
-  </ul>
+  <section class="group-block">
+    <h2>TransferDepot</h2>
+    {% if control_groups %}
+      <div class="group-buttons">
+      {% for g in control_groups %}
+        <a class="group-button" href="/{{ g }}">{{ g }}</a>
+      {% endfor %}
+      </div>
+    {% else %}
+      <p><em>No groups configured.</em></p>
+    {% endif %}
+  </section>
 
-  <h3>Power users</h3>
-  <p>POST directly to <code>/api/v1/upload/&lt;group&gt;</code></p>
+  <section class="group-block group-block--desk">
+    <h2>From Your Desk</h2>
+    {% if 'SHIRE_GATEWAY' in groups %}
+      <p class="desk-note">Need to move a small file from your workstation? <a href="/SHIRE_GATEWAY">Open the Sh1re Gateway</a>.</p>
+    {% else %}
+      <p class="desk-note"><em>Gateway group not available.</em></p>
+    {% endif %}
+  </section>
+
+  <section class="group-block">
+    <h2>Power Users</h2>
+    <p>POST directly to <code>/api/v1/upload/&lt;group&gt;</code> or explore the <a href="/admin/dev-api">Dev API door</a>.</p>
+  </section>
 </main>
 </body>
 </html>

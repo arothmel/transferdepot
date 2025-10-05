@@ -13,35 +13,55 @@
   </div>
 
   <main>
-    <h1>Group: {{ group }}</h1>
+    {% set control_groups = groups | reject('equalto', 'SHIRE_GATEWAY') | list %}
 
-    {% if is_gateway %}
-    <section class="gateway-callout">
-      <h2>Sh1re Gateway Uploads</h2>
-      <p>Welcome, Sh1re operators. Please stay on this page while the gateway processes your transfer so we can keep the queue orderly.</p>
-      <p>Your upload is important to us. We’re watching the gateway closely and will nudge it if things slow down.</p>
-      <button type="button" class="btn-secondary" onclick="window.location.href='{{ url_for('ui.index') }}'">Cancel and return home</button>
-      <p class="gateway-note">Control Room staff should keep using the standard SCT and TTCS upload paths.</p>
+    <section class="group-block">
+      <h2>TransferDepot</h2>
+      {% if control_groups %}
+        <div class="group-buttons">
+        {% for name in control_groups %}
+          <a class="group-button{% if name == group %} group-button--active{% endif %}" href="/{{ name }}">{{ name }}</a>
+        {% endfor %}
+        </div>
+      {% else %}
+        <p><em>No groups configured.</em></p>
+      {% endif %}
     </section>
-    {% endif %}
 
-    <!-- Upload form -->
-    <form method="post" enctype="multipart/form-data">
-      <input type="file" name="file">
-      <input type="submit" value="Upload">
-    </form>
+    <section class="group-block upload-block">
+      <h2>Group: {{ group }}</h2>
 
-    <h2>Files</h2>
-    {% if files %}
-    <ul>
-      {% for f in files %}
-        <!-- Link goes to API download endpoint so files open inline -->
-        <li><a href="{{ url_for('api_v1.download', group=group, fname=f) }}">{{ f }}</a></li>
-      {% endfor %}
-    </ul>
-    {% else %}
-    <p>No files uploaded yet.</p>
-    {% endif %}
-</main>
+      {% if is_gateway %}
+      <section class="gateway-callout">
+        <h3>Sh1re Gateway Uploads</h3>
+        <p>Welcome, Sh1re operators. Please stay on this page while the gateway processes your transfer so we can keep the queue orderly.</p>
+        <p>Your upload is important to us. We’re watching the gateway closely and will nudge it if things slow down.</p>
+        <button type="button" class="btn-secondary" onclick="window.location.href='{{ url_for('ui.index') }}'">Cancel and return home</button>
+        <p class="gateway-note">Control Room staff should keep using the standard SCT and TTCS upload paths.</p>
+      </section>
+      {% endif %}
+
+      <form method="post" enctype="multipart/form-data" class="upload-form">
+        <input type="file" name="file">
+        <input type="submit" value="Upload">
+      </form>
+
+      <h3>Files</h3>
+      {% if files %}
+      <ul>
+        {% for f in files %}
+          <li><a href="{{ url_for('api_v1.download', group=group, fname=f) }}">{{ f }}</a></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p>No files uploaded yet.</p>
+      {% endif %}
+    </section>
+
+    <section class="group-block">
+      <h2>Power Users</h2>
+      <p>POST directly to <code>/api/v1/upload/{{ group }}</code> or explore the <a href="/admin/dev-api">Dev API door</a>.</p>
+    </section>
+  </main>
 </body>
 </html>
