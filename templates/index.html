@@ -13,14 +13,11 @@
 </div>
 
 <main>
-  {% set control_groups = groups | reject('equalto', 'SHIRE_GATEWAY') | list %}
-  {% set gateway_present = 'SHIRE_GATEWAY' in groups %}
-
   <section class="group-block">
     <h2>TransferDepot</h2>
-    {% if control_groups or gateway_present %}
+    {% if groups or gateway_present %}
       <div class="group-buttons">
-      {% for g in control_groups %}
+      {% for g in groups %}
         <a class="group-button" href="/{{ g }}">{{ g }}</a>
       {% endfor %}
       {% if gateway_present %}

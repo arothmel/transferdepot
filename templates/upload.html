@@ -13,9 +13,6 @@
   </div>
 
   <main>
-    {% set control_groups = groups | reject('equalto', 'SHIRE_GATEWAY') | list %}
-    {% set gateway_present = 'SHIRE_GATEWAY' in groups %}
-
     <section class="group-block">
       <h2>TransferDepot</h2>
       {% if control_groups or gateway_present %}
