@@ -14,14 +14,18 @@
 
   <main>
     {% set control_groups = groups | reject('equalto', 'SHIRE_GATEWAY') | list %}
+    {% set gateway_present = 'SHIRE_GATEWAY' in groups %}
 
     <section class="group-block">
       <h2>TransferDepot</h2>
-      {% if control_groups %}
+      {% if control_groups or gateway_present %}
         <div class="group-buttons">
         {% for name in control_groups %}
           <a class="group-button{% if name == group %} group-button--active{% endif %}" href="/{{ name }}">{{ name }}</a>
         {% endfor %}
+        {% if gateway_present %}
+          <a class="group-button group-button--desk{% if group.upper() == 'SHIRE_GATEWAY' %} group-button--active{% endif %}" href="/SHIRE_GATEWAY">DESK</a>
+        {% endif %}
         </div>
       {% else %}
         <p><em>No groups configured.</em></p>
@@ -31,10 +35,11 @@
     <section class="group-block upload-block">
       <h2>Group: {{ group }}</h2>
 
-      {% if is_gateway %}
+      {% if group.upper() == 'SHIRE_GATEWAY' %}
       <section class="gateway-callout">
         <h3>Sh1re Gateway Uploads</h3>
-        <p>Welcome, Sh1re operators. Please stay on this page while the gateway processes your transfer so we can keep the queue orderly.</p>
+        <img src="{{ url_for('static', filename='images/transferdepot.png') }}" alt="TransferDepot" class="gateway-image">
+        <p>Welcome, Sh1re operators. Please stay on this page while the gateway processes your transfer.</p>
         <p>Your upload is important to us. We’re watching the gateway closely and will nudge it if things slow down.</p>
         <button type="button" class="btn-secondary" onclick="window.location.href='{{ url_for('ui.index') }}'">Cancel and return home</button>
         <p class="gateway-note">Control Room staff should keep using the standard SCT and TTCS upload paths.</p>

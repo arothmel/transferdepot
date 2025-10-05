@@ -14,26 +14,21 @@
 
 <main>
   {% set control_groups = groups | reject('equalto', 'SHIRE_GATEWAY') | list %}
+  {% set gateway_present = 'SHIRE_GATEWAY' in groups %}
 
   <section class="group-block">
     <h2>TransferDepot</h2>
-    {% if control_groups %}
+    {% if control_groups or gateway_present %}
       <div class="group-buttons">
       {% for g in control_groups %}
         <a class="group-button" href="/{{ g }}">{{ g }}</a>
       {% endfor %}
+      {% if gateway_present %}
+        <a class="group-button group-button--desk" href="/SHIRE_GATEWAY">DESK</a>
+      {% endif %}
       </div>
     {% else %}
       <p><em>No groups configured.</em></p>
-    {% endif %}
-  </section>
-
-  <section class="group-block group-block--desk">
-    <h2>From Your Desk</h2>
-    {% if 'SHIRE_GATEWAY' in groups %}
-      <p class="desk-note">Need to move a small file from your workstation? <a href="/SHIRE_GATEWAY">Open the Sh1re Gateway</a>.</p>
-    {% else %}
-      <p class="desk-note"><em>Gateway group not available.</em></p>
     {% endif %}
   </section>
 
