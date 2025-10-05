@@ -19,7 +19,13 @@ def index():
     """Landing page listing all available groups."""
     upload_root = Path(current_app.config["UPLOAD_FOLDER"])
     groups = [d.name for d in upload_root.iterdir() if d.is_dir()]
-    return render_template("index.html", groups=groups)
+    control_groups = [name for name in groups if name.upper() != GATEWAY_GROUP_NAME]
+    gateway_present = GATEWAY_GROUP_NAME in (name.upper() for name in groups)
+    return render_template(
+        "index.html",
+        groups=control_groups,
+        gateway_present=gateway_present,
+    )
 
 @ui_bp.route("/<group>/", methods=["GET", "POST"])
 def upload_page(group):
@@ -30,6 +36,8 @@ def upload_page(group):
     is_gateway = group.upper() == GATEWAY_GROUP_NAME
 
     groups = [d.name for d in upload_root.iterdir() if d.is_dir()]
+    control_groups = [name for name in groups if name.upper() != GATEWAY_GROUP_NAME]
+    gateway_present = GATEWAY_GROUP_NAME in (name.upper() for name in groups)
 
     if request.method == "POST":
         f = request.files.get("file")
@@ -43,7 +51,8 @@ def upload_page(group):
         group=group,
         files=files,
         is_gateway=is_gateway,
-        groups=groups,
+        control_groups=control_groups,
+        gateway_present=gateway_present,
     )
 
 
