@@ -3,6 +3,7 @@ import os
 import time
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 from flask import (
     Blueprint,
@@ -19,7 +20,12 @@ from flask import (
 from .files import list_active_uploads, list_files, list_groups, list_recent_transfers
 
 
-DEFAULT_ONCALL_DIR = "/home/tux/transferdepot-001/artifacts/ONCALL"
+ONCALL_DIR_CANDIDATES = [
+    Path("/home/tux/transferdepot-001/artifacts/ONCALL"),
+    Path("/home/tux/sh1re/transferdepot-001/artifacts/ONCALL"),
+]
+
+DEFAULT_ONCALL_DIR = str(ONCALL_DIR_CANDIDATES[0])
 DEFAULT_ONCALL_FILE = "oncall_board.pdf"
 
 admin_api_bp = Blueprint("admin_api", __name__, url_prefix="/api/v1/admin")
@@ -116,9 +122,9 @@ def admin_health_page():
 
     oncall_dir = cfg.get("ONCALL_DIR") or os.getenv("TD_ONCALL_DIR") or DEFAULT_ONCALL_DIR
     oncall_file = cfg.get("ONCALL_FILE") or os.getenv("TD_ONCALL_FILE") or DEFAULT_ONCALL_FILE
-    oncall_path = Path(oncall_dir) / oncall_file
+    oncall_path = _resolve_oncall_path(oncall_dir, oncall_file)
     oncall_url = None
-    if oncall_path.is_file():
+    if oncall_path is not None:
         oncall_url = url_for("admin_ui.admin_oncall_document", filename=oncall_file)
 
     return render_template(
@@ -178,8 +184,8 @@ def admin_oncall_document(filename):
     if filename != oncall_file:
         abort(404)
 
-    target = Path(oncall_dir) / oncall_file
-    if not target.is_file():
+    target = _resolve_oncall_path(oncall_dir, oncall_file)
+    if target is None:
         abort(404)
 
     response = make_response(
@@ -196,3 +202,20 @@ def admin_oncall_document(filename):
 # Public helper retained for other modules/tests
 def get_group_summaries(upload_path):
     return _group_summaries(Path(upload_path))
+def _resolve_oncall_path(oncall_dir: Optional[str], oncall_file: str) -> Optional[Path]:
+    """Return the first existing on-call PDF path, considering fallbacks."""
+
+    candidates = []
+    if oncall_dir:
+        candidates.append(Path(oncall_dir))
+
+    for fallback in ONCALL_DIR_CANDIDATES:
+        if not oncall_dir or Path(oncall_dir) != fallback:
+            candidates.append(fallback)
+
+    for base in candidates:
+        target = base / oncall_file
+        if target.is_file():
+            return target
+
+    return None
