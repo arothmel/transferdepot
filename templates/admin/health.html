@@ -23,6 +23,11 @@
         <li>Default retention: {{ retention_default }} days</li>
         <li>Retention overrides: {% if retention_overrides %}{{ retention_overrides }}{% else %}none{% endif %}</li>
         <li>API health endpoint: <a href="{{ api_health_url }}">{{ api_health_url }}</a></li>
+        {% if oncall_url %}
+        <li>On-call board: <a href="{{ oncall_url }}" target="_blank" rel="noopener">open PDF</a></li>
+        {% else %}
+        <li>On-call board: <em>file not found</em></li>
+        {% endif %}
       </ul>
     </section>
 
@@ -60,7 +65,9 @@
           {% if item.is_gateway %}<span class="tag">gateway</span>{% endif %}
           – {{ item.status|replace('_', ' ') }}; {{ item.bytes_display }}
           {% if item.total_display %} of {{ item.total_display }}{% endif %}
-          {% if item.completed_iso %}– finished {{ item.completed_iso }}{% else %}– updated {{ item.updated_iso }}{% endif %}
+          {% if item.started_iso %}– started {{ item.started_iso }}{% endif %}
+          {% if item.completed_iso %}→ finished {{ item.completed_iso }}{% else %}→ updated {{ item.updated_iso }}{% endif %}
+          {% if item.duration_display %} (duration {{ item.duration_display }}){% endif %}
           {% if item.error %}– error: {{ item.error }}{% endif %}
         </li>
         {% endfor %}

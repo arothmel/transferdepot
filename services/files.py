@@ -352,6 +352,11 @@ def list_recent_transfers(hours: float = 24.0):
             total_bytes = record.get("total_bytes")
             record["total_display"] = _format_bytes(total_bytes) if total_bytes else None
 
+            if started_ts and completed_ts:
+                duration = max(0, completed_ts - started_ts)
+                record["duration_seconds"] = duration
+                record["duration_display"] = _format_ago(duration)
+
             if status == "in_progress":
                 heartbeat_interval = int(current_app.config.get("HEARTBEAT_INTERVAL", 30)) or 30
                 stale_cutoff = updated_ts + heartbeat_interval * 4

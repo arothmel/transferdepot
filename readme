@@ -11,6 +11,7 @@ WIP scratchpad — not production ready
 ## Notes
 - groups.json currently lives outside project (`transferdepot-001/config/groups.json`)
 - env vars: `TD_UPLOAD_FOLDER`, `TD_GROUPS_FILE`, `TD_CHUNK_SIZE`, `TD_STATUS_FOLDER`, `TD_HEARTBEAT_INTERVAL`, `TD_HEARTBEAT_RETENTION`, `TD_RETENTION_DEFAULT_DAYS`, `TD_RETENTION_OVERRIDES`
+- oncall viewer env vars: `TD_ONCALL_DIR`, `TD_ONCALL_FILE` (defaults: `/home/tux/transferdepot/files/ONCALL`, `oncall_board.pdf`)
 - goal: **don’t freeze the system during uploads**
 - testing with uWSGI → 2 processes, 2 threads
 - UI door: `/` lists groups, `/<group>/` uploads, `/<group>/status` auto-refreshes heartbeat progress for legacy browsers (stop refreshing once all transfers finish).
