@@ -19,4 +19,9 @@ a file transfer service. We split it into three doors — a UI for people, an AP
 
 Results can be viewed under the Upload Status
 
+  ## Dev Bundle
+  - File: `transferdepot-dev-bundle.tgz`
+  - Contents: transferdepot, transferdepot-001, tools (sh1retools)
+  - Features: miniops `/admin/miniops`, on-call PDF validation/staleness, shared nav
+  - Built: 2024-11-15
 
