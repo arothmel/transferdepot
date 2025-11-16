@@ -20,8 +20,7 @@ a file transfer service. We split it into three doors — a UI for people, an AP
 Results can be viewed under the Upload Status
 
   ## Dev Bundle
-  - File: `transferdepot-dev-bundle.tgz`
-  - Contents: transferdepot, transferdepot-001, tools (sh1retools)
-  - Features: miniops `/admin/miniops`, on-call PDF validation/staleness, shared nav
-  - Built: 2024-11-15
-
+  - File: `transferdepot-td4-flask0122.tar.gz`
+  - Contents: transferdepot, transferdepot-001 (no sh1retools)
+  - Features: groups maintenance UI (/admin/groups_admin), on-call PDF validation/staleness, shared nav
+  - Built: 2024-11-16
