@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Groups Maintenance</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+  {% include 'admin/_topbar.html' %}
+
+  <main>
+    <h1>Groups Maintenance</h1>
+    <p>Groups file: <code>{{ groups_file }}</code></p>
+
+    {% if error %}
+    <p><strong>Error:</strong> {{ error }}</p>
+    {% endif %}
+
+    <section>
+      <h2>Add group</h2>
+      <form method="post">
+        <label for="group_name">Group name</label><br>
+        <input id="group_name" name="group_name" type="text" required>
+        <button type="submit">Add</button>
+      </form>
+      <p>Names are uppercased; existing groups are kept unique.</p>
+    </section>
+
+    <section>
+      <h2>Existing groups</h2>
+      {% if groups %}
+      <ul>
+        {% for group in groups %}
+        <li>{{ group }}</li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p>No groups found.</p>
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>

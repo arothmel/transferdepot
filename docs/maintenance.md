@@ -4,7 +4,7 @@
 - `systemctl status transferdepot.service` – confirm uWSGI is running.
 - `curl -I http://virtca8:8080/admin/health` – verify the app responds.
 - `curl -I http://virtca8/oncall/oncall_board.pdf` – confirm the ONCALL board loads.
-- Review `/home/tux/transferdepot-001/logs/oncall-check.log` (cron-driven qpdf/curl test) to ensure the PDF stayed valid and reachable.
+- Review `/home/tux/transferdepot-001/logs/oncall-check.log` (written by `check_oncall_pdf.sh`, see `docs/oncall-pdf-check.md`).
 
 ## Weekly
 - `df -h /home/tux/transferdepot-001` – ensure the files/artifacts partition isn’t filling up.

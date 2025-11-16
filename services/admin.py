@@ -15,17 +15,82 @@ from flask import (
     abort,
     make_response,
     url_for,
+    redirect,
 )
 
 from .files import list_active_uploads, list_files, list_groups, list_recent_transfers
+# Local, dependency-free helpers so we can run on RHEL8 without sh1retools
+try:  # Prefer psutil if present, but fall back to lightweight probes
+    import psutil  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    psutil = None
 
 
-ONCALL_DIR_CANDIDATES = [
-    Path("/home/tux/transferdepot-001/artifacts/ONCALL"),
-    Path("/home/tux/sh1re/transferdepot-001/artifacts/ONCALL"),
-]
+def get_system_stats():
+    """Return a small system stats dict without external deps.
 
-DEFAULT_ONCALL_DIR = str(ONCALL_DIR_CANDIDATES[0])
+    Matches the rough shape expected by the admin/miniops template. Works with
+    psutil when available; otherwise returns a minimal payload.
+    """
+
+    stats = {
+        "cpu_percent": None,
+        "memory_percent": None,
+        "disk_percent": None,
+        "load_avg": None,
+        "boot_time": None,
+    }
+
+    if psutil:
+        try:
+            stats.update(
+                cpu_percent=psutil.cpu_percent(interval=0.1),
+                memory_percent=psutil.virtual_memory().percent,
+            )
+            try:
+                stats["disk_percent"] = psutil.disk_usage("/").percent
+            except Exception:
+                pass
+            try:
+                stats["load_avg"] = os.getloadavg()[0]
+            except Exception:
+                pass
+            try:
+                stats["boot_time"] = psutil.boot_time()
+            except Exception:
+                pass
+            return stats
+        except Exception:
+            # fall back to basic stats below
+            pass
+
+    # Minimal fallback using stdlib only
+    try:
+        stats["load_avg"] = os.getloadavg()[0]
+    except Exception:
+        pass
+    return stats
+
+
+def is_valid_pdf(path: str) -> bool:
+    """Lightweight PDF validation.
+
+    We only require basic structure checks so we can run offline without qpdf.
+    """
+
+    try:
+        with open(path, "rb") as f:
+            header = f.read(5)
+            if header != b"%PDF-":
+                return False
+            f.seek(-6, os.SEEK_END)
+            trailer = f.read().strip()
+            return trailer.endswith(b"%%EOF")
+    except Exception:
+        return False
+
+
+DEFAULT_ONCALL_DIR = "/home/tux/sh1re/transferdepot-001/artifacts/ONCALL"
 DEFAULT_ONCALL_FILE = "oncall_board.pdf"
 
 admin_api_bp = Blueprint("admin_api", __name__, url_prefix="/api/v1/admin")
@@ -100,6 +165,31 @@ def _group_summaries(upload_root: Path):
     return summaries
 
 
+def _normalize_groups(raw_groups):
+    groups = []
+    if isinstance(raw_groups, dict):
+        groups.extend(raw_groups.keys())
+    elif isinstance(raw_groups, list):
+        for entry in raw_groups:
+            if isinstance(entry, str):
+                groups.append(entry)
+            elif isinstance(entry, dict):
+                name = entry.get("name") or entry.get("group")
+                if name:
+                    groups.append(name)
+
+    normalized = []
+    for name in groups:
+        if not name:
+            continue
+        normalized_name = str(name).strip().upper()
+        if normalized_name:
+            normalized.append(normalized_name)
+
+    # keep sorted unique list
+    return sorted(set(normalized))
+
+
 @admin_ui_bp.route("/health")
 def admin_health_page():
     cfg = current_app.config
@@ -149,17 +239,7 @@ def admin_dev_api_page():
     groups_error = None
     try:
         raw_groups = list_groups()
-        if isinstance(raw_groups, dict):
-            groups = sorted(raw_groups.keys())
-        else:
-            for entry in raw_groups or []:
-                if isinstance(entry, str):
-                    groups.append(entry)
-                elif isinstance(entry, dict):
-                    name = entry.get("name") or entry.get("group")
-                    if name:
-                        groups.append(name)
-        groups = sorted(set(groups))
+        groups = _normalize_groups(raw_groups)
     except Exception as exc:
         groups_error = str(exc)
 
@@ -172,6 +252,97 @@ def admin_dev_api_page():
         groups=groups,
         groups_error=groups_error,
         example_filename=example_filename,
+    )
+
+
+@admin_ui_bp.route("/groups_admin", methods=["GET", "POST"])
+def groups_admin():
+    groups = []
+    error = None
+
+    try:
+        raw_groups = list_groups()
+        groups = _normalize_groups(raw_groups)
+    except Exception as exc:
+        error = str(exc)
+        groups = []
+
+    if request.method == "POST":
+        new_group = request.form.get("group_name", "").strip().upper()
+        if new_group:
+            groups_to_write = list(groups)
+            if new_group not in groups_to_write:
+                groups_to_write.append(new_group)
+            target = Path(current_app.config["GROUPS_FILE"])
+            try:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(json.dumps(sorted(groups_to_write), indent=2))
+                return redirect(url_for("admin_ui.groups_admin"))
+            except Exception as exc:
+                error = str(exc)
+
+    groups_file = str(Path(current_app.config["GROUPS_FILE"]))
+
+    return render_template(
+        "admin/groups_admin.html",
+        groups=groups,
+        groups_file=groups_file,
+        error=error,
+    )
+
+
+@admin_ui_bp.route("/miniops")
+def admin_miniops():
+    stats = {}
+    error = None
+    try:
+        stats = get_system_stats()
+    except Exception as exc:
+        error = str(exc)
+
+    return render_template("admin/miniops.html", stats=stats, error=error)
+
+
+@admin_ui_bp.route("/oncall")
+def admin_oncall_status():
+    cfg = current_app.config
+    oncall_dir = cfg.get("ONCALL_DIR") or os.getenv("TD_ONCALL_DIR") or DEFAULT_ONCALL_DIR
+    oncall_file = cfg.get("ONCALL_FILE") or os.getenv("TD_ONCALL_FILE") or DEFAULT_ONCALL_FILE
+
+    target = _resolve_oncall_path(oncall_dir, oncall_file)
+    status = "missing"
+    pdf_url = None
+    error = None
+    last_updated_iso = None
+    is_stale = False
+
+    if target:
+        try:
+            stat = target.stat()
+            last_updated_iso = datetime.fromtimestamp(stat.st_mtime).isoformat()
+            is_stale = (time.time() - stat.st_mtime) > (14 * 24 * 60 * 60)
+
+            if is_valid_pdf(str(target)):
+                status = "valid"
+                pdf_url = url_for("admin_ui.admin_oncall_document", filename=oncall_file)
+                if is_stale:
+                    status = "stale"
+            else:
+                status = "invalid"
+        except Exception as exc:
+            status = "error"
+            error = str(exc)
+
+    return render_template(
+        "admin/oncall.html",
+        status=status,
+        pdf_path=str(target) if target else None,
+        pdf_url=pdf_url,
+        oncall_file=oncall_file,
+        configured_oncall_dir=oncall_dir,
+        last_updated_iso=last_updated_iso,
+        is_stale=is_stale,
+        error=error,
     )
 
 
@@ -205,19 +376,13 @@ def get_group_summaries(upload_path):
 
 
 def _resolve_oncall_path(oncall_dir: Optional[str], oncall_file: str) -> Optional[Path]:
-    """Return the first existing on-call PDF path, considering fallbacks."""
+    """Return the on-call PDF path if it exists, otherwise None.
 
-    candidates = []
-    if oncall_dir:
-        candidates.append(Path(oncall_dir))
+    Only a single configured path is considered; no fallbacks.
+    """
 
-    for fallback in ONCALL_DIR_CANDIDATES:
-        if not oncall_dir or Path(oncall_dir) != fallback:
-            candidates.append(fallback)
+    if not oncall_dir:
+        return None
 
-    for base in candidates:
-        target = base / oncall_file
-        if target.is_file():
-            return target
-
-    return None
+    target = Path(oncall_dir) / oncall_file
+    return target if target.is_file() else None
